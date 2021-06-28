@@ -1,16 +1,25 @@
----
 kind: pipeline
 type: docker
 name: default
 
-trigger:
-  event:
-    include:
-    - push
-    - pull_request
-
 steps:
-  - name: lint
-    image: python:3.7-alpine
-    commands:
-      - python -m pip install -r requirements.txt
+- name: backend
+  image: php
+  commands:
+  - go build
+  - go test
+
+- name: frontend
+  image: node
+  commands:
+  - npm install
+  - npm test
+
+- name: notify
+  image: plugins/slack
+  settings:
+    webhook:
+      from_secret: webhook
+  depends_on:
+  - frontend
+  - backend
